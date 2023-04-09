@@ -1,3 +1,7 @@
 printer-*_*.cfg
 .moonraker.conf.bkp
 .directory
+
+# Exclude the user directory except for the optional.cfg
+user/
+!user/optional.cfg
