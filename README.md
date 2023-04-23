@@ -2,6 +2,8 @@
 
 This repository contains the Klipper configuration and firmware for the **Sovol SV06** 3D printer with completely *stock hardware*.
 
+For the **Sovol SV06 Plus**, please refer to the [sv06-plus](https://github.com/bassamanator/Sovol-SV06-firmware/tree/sv06-plus) branch.
+
 If you wanted to use the One-Stop-Shop Klipper Configuration for a *different printer*, please switch to the [any-printer](https://github.com/bassamanator/Sovol-SV06-firmware/tree/any-printer) branch.
 
 I am creating these files for my personal use and cannot be held responsible for what it might do to your printer. Use at your own risk.
@@ -40,7 +42,7 @@ Although I've made switching over to Klipper as easy as is possible, it can stil
 - If an error was reported at a step, do no proceed to the next step.
 - It is assumed that you are connected to your host Raspberry Pi (or other host device) via SSH, and that your printer motherboard is connected to the host via a data USB cable. Note that most of the micro USB cables that you find at home are *unlikely* to be data cables, and it's not possible to tell just by looking.
 - It is also assumed that the username on the host device is `pi`. If that is not the case, you will have to manually edit `moonraker.conf` and `cfgs/misc-macros.cfg` and change any mentions of `/home/pi` to `/home/yourUserName`.
-- Klipper *must* be installed on the host Raspberry Pi for everything to work. Easiest is to use a [FluiddPi](https://docs.fluidd.xyz/installation/fluiddpi#download) or [MainsailOS](https://github.com/mainsail-crew/mainsail/releases/latest) image. [KIAUH](https://github.com/th33xitus/kiauh) is another excellent option, though it's not as simple as flashing MainsailOS on a microSD card, for example.
+- Klipper *must* be installed on the host Raspberry Pi for everything to work. Easiest is to use a [~~FluiddPI~~](https://docs.fluidd.xyz/installation/fluiddpi#download) (⚠️ `FluiddPI` is not under active maintenance) or [MainsailOS](https://github.com/mainsail-crew/mainsail/releases/latest) image. Alternatively, you can install `Fluidd` or `Mainsail` via [KIAUH](https://github.com/th33xitus/kiauh).
 - Robert Redford's performance in *Spy Game (2001)* was superb!
 - It is assumed that there is one instance of Klipper installed. If you have multiple instances of Klipper installed, via `KIAUH` for example, then this guide is not for you. You can still use all the configs of course, but the steps in this guide will likely not work for you.
 - Your question has probably been answered already, but if it hasn't, please post in the [Discussion](https://github.com/bassamanator/Sovol-SV06-firmware/discussions) section.
@@ -58,6 +60,7 @@ Although I've made switching over to Klipper as easy as is possible, it can stil
 
 - Size: `8GB`. According to Sovol, the largest size that you can use is `16GB`.
 - File system: `FAT32`.
+- Allocation unit size: `4096 bytes`.
 - Must not contain any files *except* the firmware file.
 
 ### Flashing Procedure
@@ -95,7 +98,17 @@ You can choose *either* of the 2 following methods.
 ### Step 1
 
 1. Find what port the `mcu` (SV06 motherboard) is connected to via `ls -l /dev/serial/by-id/`.
+    1. The output will be something along the lines of 
+`lrwxrwxrwx    13 root root  22 Apr 11:10  usb-1a86_USB2.0-Serial-if00-port0 -> ../../ttyUSB0`.
+    2. `usb-1a86_USB2.0-Serial-if00-port0` is the relevant part.
+    3. Therefore, the full path to your `mcu` is `/dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0`.
 2. Adjust the `[mcu]` section in `printer.cfg` accordingly.
+    Based on this *example*, your `mcu` section will be:
+    ```
+    [mcu]
+    serial: /dev/serial/by-id/usb-1a86_USB2.0-Serial-if00-port0
+    restart_method: command
+    ```
 
 ### Step 2
 
@@ -146,6 +159,12 @@ But first, adjust your slicer.
 ## Adjust Your Slicer
 
 You need to adjust the start and end gcode in your slicer. The relevant macros are `PRINT_START` and `PRINT_END`. Find instructions [here](https://ellis3dp.com/Print-Tuning-Guide/articles/passing_slicer_variables.html#slicer-start-g-code).
+
+If you would like to print a purge line before your print starts, at the end of your start gcode, on a new line add `PURGE_LINE`. Here's an example:
+```
+PRINT_START BED=[first_layer_bed_temperature] HOTEND={first_layer_temperature[initial_extruder]+extruder_temperature_offset[initial_extruder]} CHAMBER=[chamber_temperature]
+PURGE_LINE
+```
 
 ## Directory Structure
 
